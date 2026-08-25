@@ -1,0 +1,32 @@
+{
+  "assignment": "ML-10",
+  "total_rows_scored": 30000,
+  "high_confidence_rows": 2916,
+  "medium_confidence_rows": 12084,
+  "low_confidence_rows": 15000,
+  "action_breakdown": {
+    "MONITOR": 9710,
+    "REFRESH": 8165,
+    "REFRESH_AND_REVIEW_CTR": 7351,
+    "UPDATE_META_TAGS": 2390,
+    "REFRESH_AND_REVIEW_ENGAGEMENT": 2302,
+    "EXPAND_AND_REFRESH": 82
+  },
+  "top_reason_codes": {
+    "MODEL_DECLINE_RISK": 13405,
+    "VISIBLE_MODEL_OPPORTUNITY": 12129,
+    "HIGH_RANK_LOW_CTR": 9759,
+    "MONITOR_CANDIDATE": 8597,
+    "LOW_ENGAGEMENT_VISIBLE_PAGE": 6508,
+    "THIN_VISIBLE_PAGE": 82,
+    "STALE_VISIBLE_PAGE": 17
+  },
+  "model_precision_at_50": 0.98,
+  "baseline_precision_at_50": 0.34,
+  "queue_file": "..\\..\\work\\outputs\\action_playbook_queue.csv",
+  "chart_files": [
+    "..\\..\\work\\outputs\\charts\\action_mix.png",
+    "..\\..\\work\\outputs\\charts\\confidence_mix.png",
+    "..\\..\\work\\outputs\\charts\\top_reason_codes.png"
+  ]
+}
