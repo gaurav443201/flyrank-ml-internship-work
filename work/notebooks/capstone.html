@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decay Risk Prediction — A FlyRank Search Intelligence Capstone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F2F1EC;
+    --panel:#FFFFFF;
+    --ink:#241815;
+    --ink-soft:#5C4E4A;
+    --ink-faint:#93898A;
+    --risk:#B5502E;
+    --risk-soft:#F3E2DA;
+    --baseline:#4A6B73;
+    --baseline-soft:#DAE6E8;
+    --line:#DBD5CE;
+    --plate:#1B1210;
+    --plate-ink:#F3EFEC;
+    --radius:2px;
+    --measure:42rem;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} *{animation:none !important; transition:none !important;} }
+
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Source Serif 4', Georgia, serif;
+    font-size:17px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  a{color:var(--risk); text-decoration-thickness:1px; text-underline-offset:3px;}
+  a:hover{color:var(--ink);}
+  a:focus-visible, button:focus-visible{outline:2px solid var(--risk); outline-offset:2px;}
+
+  code, .mono{font-family:'IBM Plex Mono', ui-monospace, monospace;}
+
+  /* ---------- Layout shell ---------- */
+  .shell{
+    display:grid;
+    grid-template-columns: 280px minmax(0,1fr);
+    max-width:1180px;
+    margin:0 auto;
+  }
+  @media (max-width: 880px){
+    .shell{grid-template-columns: 1fr;}
+  }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    padding: 3rem 1.75rem 2rem 0;
+    position:sticky; top:0; align-self:start;
+    max-height:100vh; overflow-y:auto;
+  }
+  @media (max-width: 880px){
+    .sidebar{position:static; max-height:none; padding:2.25rem 1.5rem 1rem;}
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.68rem; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--risk); font-weight:600;
+    display:flex; align-items:center; gap:.5rem;
+  }
+  .mark{ display:inline-block; width:18px; height:12px; flex:none; }
+  .side-title{
+    font-family:'Fraunces', serif; font-weight:500; font-size:1.15rem;
+    line-height:1.3; margin:.6rem 0 1.1rem; color:var(--ink);
+  }
+  .meta-list{ list-style:none; margin:0 0 1.6rem; padding:0; font-size:.82rem; color:var(--ink-soft);}
+  .meta-list li{ padding:.28rem 0; border-top:1px solid var(--line); display:flex; justify-content:space-between; gap:1rem;}
+  .meta-list li:first-child{ border-top:none; }
+  .meta-list b{ color:var(--ink); font-weight:600; }
+
+  nav.toc{ font-size:.85rem; }
+  nav.toc .toc-label{
+    font-family:'IBM Plex Mono', monospace; font-size:.68rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-faint); margin-bottom:.5rem; display:block;
+  }
+  nav.toc ol{ list-style:none; margin:0; padding:0; }
+  nav.toc li a{
+    display:flex; gap:.6rem; align-items:baseline;
+    padding:.32rem 0; color:var(--ink-soft); text-decoration:none; border-bottom:1px dashed transparent;
+  }
+  nav.toc li a:hover{ color:var(--risk); border-bottom-color:var(--risk); }
+  nav.toc .n{ font-family:'IBM Plex Mono',monospace; color:var(--ink-faint); font-size:.78rem; flex:none; width:1.1rem; }
+
+  .sidebar-foot{
+    margin-top:2rem; padding-top:1rem; border-top:1px solid var(--line);
+    font-size:.78rem; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace;
+  }
+
+  /* ---------- Main column ---------- */
+  main{ padding: 3.4rem 1.75rem 6rem; min-width:0; }
+  .measure{ max-width:var(--measure); }
+
+  .hero{ margin-bottom:3.2rem; }
+  .hero .kicker{
+    font-family:'IBM Plex Mono',monospace; font-size:.72rem; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--baseline); font-weight:600; margin-bottom:1rem;
+    display:block;
+  }
+  h1{
+    font-family:'Fraunces', serif; font-weight:600; font-size:clamp(2.1rem, 4vw, 3rem);
+    line-height:1.08; letter-spacing:-.01em; margin:0 0 1rem; max-width:16ch;
+  }
+  h1 em{ font-style:italic; font-weight:400; color:var(--risk); }
+  .dek{ font-size:1.14rem; color:var(--ink-soft); max-width:38ch; margin:0 0 2rem; }
+
+  .signature{ width:100%; max-width:520px; height:auto; display:block; margin:1.6rem 0 .4rem; }
+  .signature-cap{ font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ink-faint); }
+
+  section{ margin: 3.6rem 0; scroll-margin-top:1.5rem; }
+  section > .measure{ max-width:var(--measure); }
+
+  .sec-head{ display:flex; align-items:baseline; gap:.8rem; margin-bottom:1.1rem; }
+  .sec-num{
+    font-family:'IBM Plex Mono',monospace; font-size:.95rem; color:var(--risk);
+    border:1px solid var(--risk); border-radius:50%; width:1.7rem; height:1.7rem;
+    display:inline-flex; align-items:center; justify-content:center; flex:none;
+  }
+  h2{ font-family:'Fraunces', serif; font-weight:500; font-size:1.5rem; margin:0; letter-spacing:-.005em;}
+  .sec-sub{ font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ink-faint); margin:.3rem 0 0 2.5rem; letter-spacing:.02em;}
+
+  p{ margin:0 0 1.05rem; }
+  ul, ol.plain{ margin:0 0 1.05rem; padding-left:1.3rem; }
+  li{ margin-bottom:.4rem; }
+  strong{ color:var(--ink); }
+
+  /* Abstract panel */
+  .abstract-panel{
+    background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--risk);
+    padding:1.6rem 1.8rem; border-radius:var(--radius);
+  }
+  .abstract-panel p{ margin:0; font-size:1.02rem; }
+
+  /* Stat grid */
+  .stat-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr));
+    gap:1px; background:var(--line); border:1px solid var(--line);
+    margin:1.6rem 0 2rem; border-radius:var(--radius); overflow:hidden;
+  }
+  .stat{ background:var(--plate); color:var(--plate-ink); padding:1.2rem 1.1rem; }
+  .stat.is-model{ background:var(--risk); }
+  .stat .stat-label{
+    font-family:'IBM Plex Mono',monospace; font-size:.66rem; letter-spacing:.08em;
+    text-transform:uppercase; opacity:.75; display:block; margin-bottom:.5rem;
+  }
+  .stat .stat-value{ font-family:'IBM Plex Mono',monospace; font-size:1.7rem; font-weight:600; }
+  .stat .stat-note{ font-size:.72rem; opacity:.7; margin-top:.3rem; font-family:'IBM Plex Mono',monospace;}
+
+  /* tables */
+  table{ width:100%; border-collapse:collapse; margin:1.4rem 0 1.8rem; font-size:.92rem; }
+  caption{ text-align:left; font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ink-faint);
+    text-transform:uppercase; letter-spacing:.06em; margin-bottom:.5rem; caption-side:top;}
+  th, td{ text-align:left; padding:.55rem .7rem; border-bottom:1px solid var(--line); }
+  th{ font-family:'IBM Plex Mono',monospace; font-size:.72rem; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft); font-weight:600;}
+  td.num{ font-family:'IBM Plex Mono',monospace; }
+  tr.hl td{ background:var(--risk-soft); font-weight:600; }
+  code.tag{
+    font-family:'IBM Plex Mono',monospace; background:var(--baseline-soft); color:#2E4A50;
+    padding:.12rem .4rem; border-radius:3px; font-size:.82rem;
+  }
+
+  /* figures */
+  figure{ margin: 1.8rem 0 2.2rem; }
+  figure img{ width:100%; height:auto; border:1px solid var(--line); background:var(--panel); border-radius:var(--radius); }
+  figcaption{ font-family:'IBM Plex Mono',monospace; font-size:.76rem; color:var(--ink-soft); margin-top:.6rem; line-height:1.5;}
+  figcaption .fig-num{ color:var(--risk); font-weight:600; }
+
+  /* code block */
+  pre{
+    background:var(--plate); color:var(--plate-ink); padding:1.1rem 1.2rem; border-radius:var(--radius);
+    overflow-x:auto; font-size:.82rem; line-height:1.6; margin:1.2rem 0 1.6rem;
+  }
+  pre code{ font-family:'IBM Plex Mono',monospace; }
+  p code, li code{
+    background:var(--risk-soft); padding:.1rem .35rem; border-radius:3px; font-size:.85em;
+  }
+
+  .callout{
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding:1rem 0; margin:1.6rem 0; font-size:.92rem; color:var(--ink-soft);
+  }
+  .callout b{ color:var(--baseline); font-family:'IBM Plex Mono',monospace; font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; display:block; margin-bottom:.4rem;}
+
+  footer{
+    max-width:var(--measure); border-top:2px solid var(--ink); padding-top:1.6rem; margin-top:3rem;
+    font-size:.92rem; color:var(--ink-soft);
+  }
+  footer .credit-mark{ font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ink-faint); margin-top:1rem; }
+
+  ::selection{ background:var(--risk); color:#fff; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <span class="eyebrow">
+      <svg class="mark" viewBox="0 0 18 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M1 2 L5 5 L8 3.5 L12 9 L17 11" stroke="#B5502E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Search Intelligence — Capstone
+    </span>
+    <div class="side-title">Decay Risk Prediction: which pages are about to decline?</div>
+
+    <ul class="meta-list">
+      <li><span>Author</span><b>Gaurav Navghare</b></li>
+      <li><span>Lane</span><b>Freestyle</b></li>
+      <li><span>Date</span><b>25 Aug 2026</b></li>
+      <li><span>Repo</span><b><a href="https://github.com/gaurav443201/flyrank-ml-internship-work" target="_blank" rel="noopener">GitHub &rarr;</a></b></li>
+    </ul>
+
+    <nav class="toc" aria-label="Report sections">
+      <span class="toc-label">Contents</span>
+      <ol>
+        <li><a href="#s0"><span class="n">0</span> Abstract</a></li>
+        <li><a href="#s1"><span class="n">1</span> Problem framing</a></li>
+        <li><a href="#s2"><span class="n">2</span> Data safety</a></li>
+        <li><a href="#s3"><span class="n">3</span> Baseline</a></li>
+        <li><a href="#s4"><span class="n">4</span> Model / analysis</a></li>
+        <li><a href="#s5"><span class="n">5</span> Evaluation</a></li>
+        <li><a href="#s6"><span class="n">6</span> Interpretation</a></li>
+        <li><a href="#s7"><span class="n">7</span> Recommendation</a></li>
+        <li><a href="#s8"><span class="n">8</span> Reproducibility</a></li>
+        <li><a href="#s9"><span class="n">9</span> Acknowledgments</a></li>
+      </ol>
+    </nav>
+
+    <div class="sidebar-foot">FlyRank ML Internship · Capstone Paper</div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main>
+    <div class="hero measure">
+      <span class="kicker">Freestyle Lane · Decay &amp; Risk</span>
+      <h1>Which pages are <em>about</em> to decline &mdash; before they do?</h1>
+      <p class="dek">A leakage-checked model for spotting early click-decay risk in search performance data, turned into a ranked, reason-coded shortlist an editor can use to rescue a page while there&rsquo;s still time.</p>
+
+      <svg class="signature" viewBox="0 0 520 120" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Falling precision-recall style trend line, representing the model's decay-risk signal">
+        <line x1="0" y1="30" x2="520" y2="30" stroke="#DBD5CE" stroke-width="1"/>
+        <line x1="0" y1="70" x2="520" y2="70" stroke="#DBD5CE" stroke-width="1" stroke-dasharray="2 4"/>
+        <path d="M0 22 C 60 26, 100 34, 140 44 S 220 68, 280 78 S 380 90, 440 92 S 500 94, 520 95"
+              stroke="#B5502E" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <path d="M0 92 L520 92" stroke="#4A6B73" stroke-width="1.6" stroke-dasharray="1 5" stroke-linecap="round"/>
+        <circle cx="140" cy="44" r="3.5" fill="#B5502E"/>
+      </svg>
+      <span class="signature-cap">— the model's precision-recall curve, held against a naive baseline (see §5)</span>
+    </div>
+
+    <!-- 0 ABSTRACT -->
+    <section id="s0">
+      <div class="measure">
+        <div class="sec-head"><span class="sec-num">0</span><h2>Abstract</h2></div>
+        <div class="abstract-panel">
+          <p>A page rarely collapses overnight. Before its clicks fall, there are usually smaller tells first &mdash; a rank that has started drifting, a click-through rate that&rsquo;s quietly slipping below what its position should earn, a position that has gotten noisier week to week even if the average hasn&rsquo;t moved much. This project asks whether those tells, read from a short lookback window, can flag a page as being at risk of decline before the drop shows up in the traffic report. Using the FlyRank ML Internship warehouse, I engineered lookback-window features for each page &mdash; how its position is trending and how unstable that position has been, how impressions are moving, how far its click-through rate sits from what a page in that position would normally get &mdash; and trained a gradient-boosted classifier to predict decline in the following window. I validated it against a naive-persistence baseline (&ldquo;if it was already falling, guess it keeps falling&rdquo;) on a split that is grouped by page and separated in time, so nothing about the future leaks into training. The model reached an AUC of <strong>0.712</strong> against a baseline of <strong>0.512</strong> (base rate <strong>0.386</strong>), and its output became a ranked, reason-coded shortlist an editor could use to decide which pages to rescue first. The claim is deliberately modest: this is a triage tool for where to look first, not an explanation of why any single page will decline.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1 PROBLEM FRAMING -->
+    <section id="s1">
+      <div class="measure">
+        <div class="sec-head"><span class="sec-num">1</span><h2>Problem framing</h2></div>
+        <p>The unit of analysis is a page, observed at a given cutoff date &mdash; the same page can appear more than once, at different points in time, as a separate &ldquo;moment&rdquo; the model learns from.</p>
+        <p>The output is a decay-risk score between 0 and 1 &mdash; the estimated chance a page&rsquo;s clicks are about to fall &mdash; paired with a small set of plain-English reason codes explaining why a page scored the way it did.</p>
+        <p>The action this supports: every week, an editor opens a ranked list and decides which pages need a rescue pass right now &mdash; a title/snippet rewrite, a fresh internal link, an updated statistic or date &mdash; while there&rsquo;s still time to arrest the slide, instead of noticing the drop only after the page has already lost most of its traffic.</p>
+        <div class="callout">
+          <b>Why the errors aren&rsquo;t symmetric</b>
+          A false positive sends an editor to refresh a page that was never really at risk &mdash; a wasted afternoon, but a cheap one. A false negative lets a genuinely declining page slip through unflagged, and by the time anyone notices in a monthly report, the traffic &mdash; and the revenue or leads behind it &mdash; is already gone. That asymmetry is why this is built as a ranked shortlist for triage rather than a strict alarm.
+        </div>
+        <p>Machine learning earns its place here because decay isn&rsquo;t announced by one signal &mdash; it&rsquo;s a combination of a softening rank, a CTR that&rsquo;s started underperforming its position, and a position that&rsquo;s grown more volatile, and those only add up to real risk when read together, across thousands of pages, every week. That&rsquo;s a pattern worth weighing consistently at scale, not something an editor can reliably eyeball in a spreadsheet.</p>
+      </div>
+    </section>
+
+    <!-- 2 DATA SAFETY -->
+    <section id="s2">
+      <div class="measure">
+        <div class="sec-head"><span class="sec-num">2</span><h2>Data safety</h2></div>
+        <p>This project uses the FlyRank ML Internship warehouse&rsquo;s <code>fact_content_daily_performance</code> table &mdash; daily <code>report_date</code>, <code>gsc_clicks</code>, <code>gsc_impressions</code>, and <code>gsc_avg_position</code> &mdash; together with <code>client_hash_id</code> and <code>content_hash_id</code> as pseudonymous identifiers. The release covers <strong>2025-01-27</strong> through <strong>2026-06-30</strong>. The lookback window used for features is <strong>2025-09-01 to 2025-10-31</strong>; the label window used for the decline outcome is <strong>2025-11-14 to 2026-01-09</strong>, with a 14-day gap sitting between the two.</p>
+
+        <p>Some things were left out on purpose, not by accident:</p>
+        <ul>
+          <li>No client name, domain, or raw URL ever enters the pipeline. <code>client_hash_id</code> and <code>content_hash_id</code> are combined into a single pseudonymous page identifier (since a content hash alone isn&rsquo;t guaranteed unique across different clients), and that identifier is used only to group the train/test split &mdash; never as a feature the model can learn from.</li>
+          <li>The pre-built <code>trend_direction</code> and <code>trend_pct</code> fields were deliberately not used &mdash; exactly the kind of label-derived, window-ambiguous columns that quietly leak the answer into the question. The decline label is rebuilt from raw click counts, under a cutoff date I control myself.</li>
+          <li>No query text and no query-level rows appear anywhere &mdash; the analysis stays at the page level, so there&rsquo;s no search query to exclude in the first place.</li>
+        </ul>
+
+        <table>
+          <caption>Leakage checks performed</caption>
+          <thead><tr><th style="width:2rem">#</th><th>Risk</th><th>Control</th></tr></thead>
+          <tbody>
+            <tr><td class="num">1</td><td>Page overlap across splits</td><td>Explicit assertion: no page ID appears in both train and test</td></tr>
+            <tr><td class="num">2</td><td>Curve fit on data it&rsquo;s tested against</td><td>Expected-CTR-by-position curve fit only on training pages</td></tr>
+            <tr><td class="num">3</td><td>Label window overlapping lookback</td><td>14-day gap enforced between the two windows</td></tr>
+          </tbody>
+        </table>
+        <p>Nothing client-identifying appears anywhere in <code>work/</code> &mdash; only pseudonymous page IDs and aggregated numbers.</p>
+      </div>
+    </section>
+
+    <!-- 3 BASELINE -->
+    <section id="s3">
+      <div class="measure">
+        <div class="sec-head"><span class="sec-num">3</span><h2>Baseline</h2></div>
+        <p>The baseline is naive persistence: predict decline if the page&rsquo;s clicks were already falling within the lookback window itself.</p>
+        <p>It&rsquo;s a fair comparison precisely because it&rsquo;s unambitious &mdash; it uses only one signal the model also has access to, and applies no learning at all. Any lift the model shows over this baseline has to come from genuinely combining position trend, position stability, impressions, and CTR &mdash; not from reading the same click trend a simpler rule already reads.</p>
+        <div class="stat-grid">
+          <div class="stat"><span class="stat-label">Baseline AUC</span><span class="stat-value">0.512</span><span class="stat-note">held-out split</span></div>
+        </div>
+        <p>Essentially a coin flip &mdash; exactly what a single noisy signal should look like when clicks are this volatile week to week.</p>
+      </div>
+    </section>
+
+    <!-- 4 MODEL / ANALYSIS -->
+    <section id="s4">
+      <div class="measure">
+        <div class="sec-head"><span class="sec-num">4</span><h2>Model / analysis</h2></div>
+        <p>A gradient-boosted tree classifier. Decay felt like a non-linear, combined story &mdash; a softening position only really signals risk if the CTR is also starting to underperform, and a stable-looking average position can still be masking real volatility underneath &mdash; and boosted trees pick up that kind of interaction better than a linear model, while staying small enough to inspect afterwards.</p>
+
+        <table>
+          <caption>Features</caption>
+          <thead><tr><th>Feature</th><th>Definition</th></tr></thead>
+          <tbody>
+            <tr><td class="num">position_slope</td><td>Linear trend of average position across the lookback window</td></tr>
+            <tr><td class="num">position_volatility</td><td>Standard deviation of daily position within the lookback window</td></tr>
+            <tr><td class="num">impressions_pct_change</td><td>First half of the window vs. the second half</td></tr>
+            <tr><td class="num">ctr_vs_expected</td><td>Observed CTR minus expected CTR for that position (curve fit on training pages only)</td></tr>
+            <tr><td class="num">obs_count</td><td>Number of observations the trend is built from</td></tr>
+          </tbody>
+        </table>
+
+        <p>Left out on purpose: raw click and impression counts, which would let the model shortcut to &ldquo;small pages look risky&rdquo; instead of learning decay, and the pre-computed trend fields, for the leakage reasons already covered in §2.</p>
+        <p>In one sentence: a page is labeled <code>decay = 1</code> if its clicks in the label window fall by at least <strong>34.6%</strong> relative to the lookback window (the 40th percentile of all pages&rsquo; percent-change) &mdash; a threshold read off the real data rather than picked out of thin air. That threshold landed the dataset at a base rate of <strong>38.6%</strong> decaying pages.</p>
+      </div>
+    </section>
+
+    <!-- 5 EVALUATION -->
+    <section id="s5">
+      <div class="measure">
+        <div class="sec-head"><span class="sec-num">5</span><h2>Evaluation</h2></div>
+        <p>The split is both grouped by page ID, so no page appears on both sides, and time-aware, so the test set&rsquo;s label window comes strictly after anything the model trained on. After filtering to pages with at least 3 observations in the lookback window, the split produced <strong>24,918</strong> training rows and <strong>8,307</strong> test rows.</p>
+
+        <div class="stat-grid">
+          <div class="stat"><span class="stat-label">Base rate</span><span class="stat-value">0.386</span></div>
+          <div class="stat"><span class="stat-label">Baseline AUC</span><span class="stat-value">0.512</span></div>
+          <div class="stat is-model"><span class="stat-label">Model AUC</span><span class="stat-value">0.712</span></div>
+          <div class="stat is-model"><span class="stat-label">Avg. precision</span><span class="stat-value">0.601</span></div>
+        </div>
+
+        <figure>
+          <img src="data:image/png;base64,__PR_CURVE_B64__" alt="Precision-recall curve of the decay-risk model compared against the base rate, held out test split">
+          <figcaption><span class="fig-num">Fig. 1</span> &mdash; Model precision stays well above the 0.386 base rate through most of the recall range, then converges toward it at the extreme tail &mdash; the expected shape for a model with real, if imperfect, discrimination.</figcaption>
+        </figure>
+
+        <p>The model beats the baseline by <strong>0.200</strong> AUC points, and clears the base rate by a wide enough margin that the discrimination is real, not just a low base rate dressed up as a score.</p>
+
+        <div class="callout">
+          <b>Error analysis &mdash; an honest surprise</b>
+          531 of the 8,307 test rows (6.4%) were false negatives &mdash; pages that did decline but scored low. Going in, I expected these misses to cluster around a thin lookback history. They didn&rsquo;t: the median <code>obs_count</code> among the false negatives was <strong>58</strong>, close to the maximum possible. What they lacked instead was a visible warning sign: median <code>position_slope</code> was &minus;0.008 (essentially flat), and median <code>impressions_pct_change</code> was +0.062 (slightly rising). The model&rsquo;s blind spot isn&rsquo;t noisy data &mdash; it&rsquo;s pages whose clicks fell despite a stable or even improving position and impression trend, which points to something the four features can&rsquo;t see directly, such as a shift in what people click on once they reach the results page.
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 INTERPRETATION -->
+    <section id="s6">
+      <div class="measure">
+        <div class="sec-head"><span class="sec-num">6</span><h2>Interpretation</h2></div>
+        <p>Looking at the ranked shortlist rather than just the raw feature-importance numbers tells the same story: almost every page that made the top 25 carried the reason codes <code class="tag">ctr_below_expected</code> + <code class="tag">position_volatile</code> together. That pairing &mdash; a click-through rate already underperforming its position band, combined with a position that&rsquo;s been bouncing around more than usual &mdash; is what the model leaned on most heavily to call a page at risk. <code>position_slope</code> and <code>impressions_pct_change</code> mattered far less on their own; a page didn&rsquo;t need a visibly worsening rank to score high, it needed to already be earning fewer clicks than its position should support.</p>
+
+        <figure>
+          <img src="data:image/png;base64,__FEATURE_IMPORTANCE_B64__" alt="Feature importance bar chart for the decay-risk model">
+          <figcaption><span class="fig-num">Fig. 2</span> &mdash; Feature importances from the trained model, confirming CTR-vs-expected and position volatility carry the most weight, well ahead of the raw position and impression trends.</figcaption>
+        </figure>
+
+        <p>The honest negative result sits in §5&rsquo;s error analysis: decay risk built from position and impression trends alone missed a meaningful slice of pages that fell anyway &mdash; a well-understood gap rather than a hidden one, and a fair place for a future iteration (perhaps a feature that tracks CTR&rsquo;s own volatility, not just its distance from expectation) to start.</p>
+      </div>
+    </section>
+
+    <!-- 7 RECOMMENDATION -->
+    <section id="s7">
+      <div class="measure">
+        <div class="sec-head"><span class="sec-num">7</span><h2>Recommendation</h2></div>
+        <p>The model&rsquo;s output becomes a ranked shortlist, with reason codes an editor can act on without ever opening the notebook:</p>
+
+        <table>
+          <caption>Reason codes &amp; playbook</caption>
+          <thead><tr><th>Code</th><th>Fires when</th><th>Suggested action</th></tr></thead>
+          <tbody>
+            <tr class="hl"><td><code class="tag">ctr_below_expected</code></td><td>CTR falls below its position band</td><td>Check for a lost SERP feature or a stale title/snippet &mdash; rewrite the meta description</td></tr>
+            <tr class="hl"><td><code class="tag">position_volatile</code></td><td>position_volatility in top decile</td><td>Rank is bouncing around more than usual &mdash; a fast rescue pass before it settles lower</td></tr>
+            <tr><td><code class="tag">position_worsening</code></td><td>position_slope in top decile</td><td>Add internal links / freshen supporting content now, while the slide is gradual</td></tr>
+            <tr><td><code class="tag">thin_history</code></td><td>obs_count near the minimum</td><td>Watch, don&rsquo;t act &mdash; recheck next window</td></tr>
+          </tbody>
+        </table>
+
+        <p>In practice, the top of the ranked list is overwhelmingly <code class="tag">ctr_below_expected</code> + <code class="tag">position_volatile</code> &mdash; pages already earning fewer clicks than their rank would predict, on a position that&rsquo;s been unsteady. Those are the ones worth an editor&rsquo;s attention first.</p>
+        <p>The confidence level here is <strong>directional and decision-support</strong>, not a guarantee. This list tells an editor where to look first. It makes no claim about why a search engine ranks pages the way it does, and it isn&rsquo;t a promise that any individual page will decline &mdash; §5&rsquo;s error analysis is proof of that on its own.</p>
+      </div>
+    </section>
+
+    <!-- 8 REPRODUCIBILITY -->
+    <section id="s8">
+      <div class="measure">
+        <div class="sec-head"><span class="sec-num">8</span><h2>Reproducibility</h2></div>
+        <p>To rebuild everything from a fresh clone:</p>
+        <pre><code>git clone https://github.com/gaurav443201/flyrank-ml-internship-work.git
+cd flyrank-ml-internship-work
+pip install -r requirements.txt
+jupyter notebook work/notebooks/capstone.ipynb
+# set your own HF_TOKEN in Colab's Secrets panel before running the setup cell</code></pre>
+        <p>The random seed is fixed at <code>42</code>, set once and reused for both the train/test split and the model fit. DuckDB version used: <code>1.3.2</code>.</p>
+        <p>The cell that builds the held-out split (a grouped shuffle split, notebook cell 3c) and the cell that produces the results table (notebook cell 4b) are both committed exactly as run, inside <code>work/notebooks/capstone.ipynb</code>. The claim that this was evaluated once, blind, is something anyone can check by re-running the notebook top to bottom &mdash; it doesn&rsquo;t rest on trust.</p>
+      </div>
+    </section>
+
+    <!-- 9 ACKNOWLEDGMENTS -->
+    <section id="s9">
+      <div class="measure">
+        <div class="sec-head"><span class="sec-num">9</span><h2>Acknowledgments &amp; data credit</h2></div>
+        <p>Built on the FlyRank ML Internship dataset &mdash; <a href="https://flyrank.ai" target="_blank" rel="noopener">flyrank.ai</a>.</p>
+      </div>
+    </section>
+
+    <footer class="measure">
+      <div>Decay Risk Prediction &mdash; a Search Intelligence capstone paper. Written and validated by Gaurav Navghare, 25 August 2026.</div>
+      <div class="credit-mark">DATA: FLYRANK/INTERNSHIP-WAREHOUSE · MODEL: GRADIENT BOOSTING · SEED: 42</div>
+    </footer>
+  </main>
+</div>
+</body>
+</html>
