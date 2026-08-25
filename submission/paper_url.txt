@@ -1,1 +1,3 @@
-PASTE-YOUR-DEPLOYED-PAPER-URL-HERE
+https://gaurav443201.github.io/flyrank-ml-internship-work/work/notebooks/capstone.html
+
+
